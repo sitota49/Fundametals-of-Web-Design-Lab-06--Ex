@@ -5,6 +5,8 @@ const taskList = document.querySelector('.collection');
 const clearBtn = document.querySelector('.clear-tasks');
 
 const reloadIcon = document.querySelector('.fa');
+const asc = document.querySelector('.asc');
+const desc = document.querySelector('.desc');
 
 let DB;
 
@@ -72,6 +74,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
     }
+    let reverseOrder = false;
+
 
     function displayTaskList() {
         while (taskList.firstChild) {
@@ -79,8 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let objectStore = DB.transaction('tasks').objectStore('tasks');
+        let index = objectStore.index('timestamp');
+        let req = index.openCursor(null, reverseOrder ? 'prev' : 'next');
 
-        objectStore.openCursor().onsuccess = function (e) {
+        req.onsuccess = function (e) {
             let cursor = e.target.result;
 
             if (cursor) {
@@ -140,6 +146,18 @@ document.addEventListener('DOMContentLoaded', () => {
         tasks.clear();
         displayTaskList();
         console.log("Tasks Cleared !!!");
+    }
+
+    asc.addEventListener('click', sortByDate);
+    desc.addEventListener('click', sortByDate);
+
+    function sortByDate() {
+        reverseOrder = !reverseOrder;
+        displayTaskList();
+
+        asc.classList.toggle("disabled");
+        desc.classList.toggle("disabled");
+
     }
 
 
