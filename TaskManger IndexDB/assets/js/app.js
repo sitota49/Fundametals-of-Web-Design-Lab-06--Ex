@@ -1,37 +1,41 @@
-// Define UI Variables 
 const taskInput = document.querySelector('#task');
 const form = document.querySelector('#task-form');
 const filter = document.querySelector('#filter');
 const taskList = document.querySelector('.collection');
 const clearBtn = document.querySelector('.clear-tasks');
+
 const reloadIcon = document.querySelector('.fa');
-const asc = document.querySelector('.asc');
-const desc = document.querySelector('.desc');
 
 let DB;
 
 document.addEventListener('DOMContentLoaded', () => {
-    let TasksDB = indexedDB.open('tasks', 1);
+
+    let TasksDB = indexedDB.open('tasks', 2);
 
     TasksDB.onerror = function () {
         console.log('There was an error');
     }
-    TasksDB.onsuccess = function () {
-        // console.log('Database Ready');
-        DB = TasksDB.result;
 
+    TasksDB.onsuccess = function () {
+
+        DB = TasksDB.result;
         displayTaskList();
     }
 
-
     TasksDB.onupgradeneeded = function (e) {
-        let db = e.target.result;
 
-        let objectStore = db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+        if (!db.objectStoreNames.contains('tasks')) {
+            tasks = DB.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+            objectStore.createIndex('taskname', 'taskname', { unique: false });
+            console.log('Database ready and fields created!');
+        } else {
+            tasks = TasksDB.transaction.objectStore('tasks');
+            console.log('Database ready!');
+        }
 
-        objectStore.createIndex('taskname', 'taskname', { unique: false });
-
-        console.log('Database ready and fields created!');
+        if (!tasks.indexNames.contains('timestamp')) {
+            tasks.createIndex('timestamp', 'timestamp');
+        }
     }
 
     form.addEventListener('submit', addNewTask);
@@ -47,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTask = {
             taskname: taskInput.value,
+            date: Date.now()
         }
 
         let transaction = DB.transaction(['tasks'], 'readwrite');
@@ -69,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayTaskList() {
-
         while (taskList.firstChild) {
             taskList.removeChild(taskList.firstChild);
         }
@@ -77,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let objectStore = DB.transaction('tasks').objectStore('tasks');
 
         objectStore.openCursor().onsuccess = function (e) {
-
             let cursor = e.target.result;
 
             if (cursor) {
@@ -91,22 +94,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.innerHTML = `
                  <i class="fa fa-remove"></i>
                 &nbsp;
-                <a href="/Lesson 04 [Lab 06]/Finished/edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+                <a href="./assetes/js/edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
                 `;
+                // Append link to li
                 li.appendChild(link);
+                // Append to UL 
                 taskList.appendChild(li);
                 cursor.continue();
             }
         }
     }
 
+    // Remove task event [event delegation]
     taskList.addEventListener('click', removeTask);
 
     function removeTask(e) {
 
         if (e.target.parentElement.classList.contains('delete-item')) {
             if (confirm('Are You Sure about that ?')) {
+                // get the task id
                 let taskID = Number(e.target.parentElement.parentElement.getAttribute('data-task-id'));
+                // use a transaction
                 let transaction = DB.transaction(['tasks'], 'readwrite');
                 let objectStore = transaction.objectStore('tasks');
                 objectStore.delete(taskID);
@@ -121,36 +129,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    //clear button event listener   
     clearBtn.addEventListener('click', clearAllTasks);
 
+    //clear tasks 
     function clearAllTasks() {
         let transaction = DB.transaction("tasks", "readwrite");
         let tasks = transaction.objectStore("tasks");
+        // clear the table.
         tasks.clear();
         displayTaskList();
         console.log("Tasks Cleared !!!");
     }
 
-    asc.addEventListener('click', sort);
-    desc.addEventListener('click', sort);
-
-    function sort() {
-
-        const lis = document.querySelectorAll('.collection-item');
-        if (lis) {
-            taskList.removeChild(taskList.firstChild);
-            var i = lis.length;
-            while (i--) {
-                taskList.appendChild(lis[i]);
-            }
-
-
-        }
-
-        asc.classList.toggle("disabled");
-        desc.classList.toggle("disabled");
-
-
-    }
 
 });
