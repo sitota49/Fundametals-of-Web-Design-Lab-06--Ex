@@ -11,7 +11,7 @@ var DB;
 // Add Event Listener [on Load]
 document.addEventListener('DOMContentLoaded', () => {
     // create the database
-    let TasksDB = indexedDB.open('tasks', 2);
+    let TasksDB = indexedDB.open('tasks', 1);
 
     // if there's an error
     TasksDB.onerror = function () {

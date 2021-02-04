@@ -12,10 +12,10 @@ let DB;
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    let TasksDB = indexedDB.open('tasks', 2);
+    let TasksDB = indexedDB.open('tasks', 1);
 
-    TasksDB.onerror = function () {
-        console.log('There was an error');
+    TasksDB.onerror = function (e) {
+        console.log(e);
     }
 
     TasksDB.onsuccess = function () {
@@ -25,18 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     TasksDB.onupgradeneeded = function (e) {
-
-        if (!db.objectStoreNames.contains('tasks')) {
+        DB = TasksDB.result;
+        if (!DB.objectStoreNames.contains('tasks')) {
             tasks = DB.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-            objectStore.createIndex('taskname', 'taskname', { unique: false });
+            tasks.createIndex('taskname', 'taskname', { unique: false });
             console.log('Database ready and fields created!');
         } else {
             tasks = TasksDB.transaction.objectStore('tasks');
             console.log('Database ready!');
         }
 
-        if (!tasks.indexNames.contains('timestamp')) {
-            tasks.createIndex('timestamp', 'timestamp');
+        if (!tasks.indexNames.contains('date')) {
+            tasks.createIndex('date', 'date');
         }
     }
 
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTask = {
             taskname: taskInput.value,
-            timestamp: Date.now()
+            date: Date.now()
         }
 
         let transaction = DB.transaction(['tasks'], 'readwrite');
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let objectStore = DB.transaction('tasks').objectStore('tasks');
-        let index = objectStore.index('timestamp');
+        let index = objectStore.index('date');
         let req = index.openCursor(null, reverseOrder ? 'prev' : 'next');
 
         req.onsuccess = function (e) {
