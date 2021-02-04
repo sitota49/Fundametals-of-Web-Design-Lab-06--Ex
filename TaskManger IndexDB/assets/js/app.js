@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let newTask = {
             taskname: taskInput.value,
-            date: Date.now()
+            timestamp: Date.now()
         }
 
         let transaction = DB.transaction(['tasks'], 'readwrite');
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.innerHTML = `
                  <i class="fa fa-remove"></i>
                 &nbsp;
-                <a href="./assetes/js/edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
+                <a href="edit.html?id=${cursor.value.id}"><i class="fa fa-edit"></i> </a>
                 `;
                 // Append link to li
                 li.appendChild(link);
